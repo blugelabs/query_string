@@ -30,16 +30,16 @@ tEQUAL tTILDE
 
 input:
 searchParts {
-	yylex.(*lexerWrapper).LogDebugGrammar("INPUT")
+	yylex.(*lexerWrapper).logDebugGrammarf("INPUT")
 };
 
 searchParts:
 searchPart searchParts {
-	yylex.(*lexerWrapper).LogDebugGrammar("SEARCH PARTS")
+	yylex.(*lexerWrapper).logDebugGrammarf("SEARCH PARTS")
 }
 |
 searchPart {
-	yylex.(*lexerWrapper).LogDebugGrammar("SEARCH PART")
+	yylex.(*lexerWrapper).logDebugGrammarf("SEARCH PART")
 };
 
 searchPart:
@@ -69,23 +69,23 @@ searchPrefix:
 }
 |
 tPLUS {
-	yylex.(*lexerWrapper).LogDebugGrammar("PLUS")
+	yylex.(*lexerWrapper).logDebugGrammarf("PLUS")
 	$$ = queryMust
 }
 |
 tMINUS {
-	yylex.(*lexerWrapper).LogDebugGrammar("MINUS")
+	yylex.(*lexerWrapper).logDebugGrammarf("MINUS")
 	$$ = queryMustNot
 };
 
 searchBase:
 tSTRING {
-    yylex.(*lexerWrapper).LogDebugGrammar("STRING - %s", $1)
+    yylex.(*lexerWrapper).logDebugGrammarf("STRING - %s", $1)
 	$$ = queryStringStringToken("", $1)
 }
 |
 tSTRING tTILDE {
-    yylex.(*lexerWrapper).LogDebugGrammar("FUZZY STRING - %s %s", $1, $2)
+    yylex.(*lexerWrapper).logDebugGrammarf("FUZZY STRING - %s %s", $1, $2)
 	q, err := queryStringStringTokenFuzzy("", $1, $2)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -94,7 +94,7 @@ tSTRING tTILDE {
 }
 |
 tSTRING tCOLON tSTRING tTILDE {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - %s FUZZY STRING - %s %s", $1, $3, $4)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s FUZZY STRING - %s %s", $1, $3, $4)
     q, err := queryStringStringTokenFuzzy($1, $3, $4)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -103,7 +103,7 @@ tSTRING tCOLON tSTRING tTILDE {
 }
 |
 tNUMBER {
-	yylex.(*lexerWrapper).LogDebugGrammar("STRING - %s", $1)
+	yylex.(*lexerWrapper).logDebugGrammarf("STRING - %s", $1)
 	q, err := queryStringNumberToken("", $1)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -112,17 +112,17 @@ tNUMBER {
 }
 |
 tPHRASE {
-	yylex.(*lexerWrapper).LogDebugGrammar("PHRASE - %s", $1)
+	yylex.(*lexerWrapper).logDebugGrammarf("PHRASE - %s", $1)
 	$$ = queryStringPhraseToken("", $1)
 }
 |
 tSTRING tCOLON tSTRING {
-	yylex.(*lexerWrapper).LogDebugGrammar("FIELD - %s STRING - %s", $1, $3)
+	yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s STRING - %s", $1, $3)
 	$$ = queryStringStringToken($1, $3)
 }
 |
 tSTRING tCOLON posOrNegNumber {
-	yylex.(*lexerWrapper).LogDebugGrammar("FIELD - %s STRING - %s", $1, $3)
+	yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s STRING - %s", $1, $3)
 	q, err := queryStringNumberToken($1, $3)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -131,12 +131,12 @@ tSTRING tCOLON posOrNegNumber {
 }
 |
 tSTRING tCOLON tPHRASE {
-	yylex.(*lexerWrapper).LogDebugGrammar("FIELD - %s PHRASE - %s", $1, $3)
+	yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s PHRASE - %s", $1, $3)
 	$$ = queryStringPhraseToken($1, $3)
 }
 |
 tSTRING tCOLON tGREATER posOrNegNumber {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - GREATER THAN %s", $4)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - GREATER THAN %s", $4)
 	q, err := queryStringNumericRangeGreaterThanOrEqual($1, $4, false)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -145,7 +145,7 @@ tSTRING tCOLON tGREATER posOrNegNumber {
 }
 |
 tSTRING tCOLON tGREATER tEQUAL posOrNegNumber {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - GREATER THAN OR EQUAL %s", $5)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - GREATER THAN OR EQUAL %s", $5)
     q, err := queryStringNumericRangeGreaterThanOrEqual($1, $5, true)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -154,7 +154,7 @@ tSTRING tCOLON tGREATER tEQUAL posOrNegNumber {
 }
 |
 tSTRING tCOLON tLESS posOrNegNumber {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - LESS THAN %s", $4)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - LESS THAN %s", $4)
     q, err := queryStringNumericRangeLessThanOrEqual($1, $4, false)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -163,7 +163,7 @@ tSTRING tCOLON tLESS posOrNegNumber {
 }
 |
 tSTRING tCOLON tLESS tEQUAL posOrNegNumber {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - LESS THAN OR EQUAL %s", $5)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - LESS THAN OR EQUAL %s", $5)
     q, err := queryStringNumericRangeLessThanOrEqual($1, $5, true)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -172,7 +172,7 @@ tSTRING tCOLON tLESS tEQUAL posOrNegNumber {
 }
 |
 tSTRING tCOLON tGREATER tPHRASE {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - GREATER THAN DATE %s", $4)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - GREATER THAN DATE %s", $4)
 	q, err := queryStringDateRangeGreaterThanOrEqual(yylex, $1, $4, false)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -181,7 +181,7 @@ tSTRING tCOLON tGREATER tPHRASE {
 }
 |
 tSTRING tCOLON tGREATER tEQUAL tPHRASE {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - GREATER THAN OR EQUAL DATE %s", $5)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - GREATER THAN OR EQUAL DATE %s", $5)
     q, err := queryStringDateRangeGreaterThanOrEqual(yylex, $1, $5, true)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -190,7 +190,7 @@ tSTRING tCOLON tGREATER tEQUAL tPHRASE {
 }
 |
 tSTRING tCOLON tLESS tPHRASE {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - LESS THAN DATE %s", $4)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - LESS THAN DATE %s", $4)
     q, err := queryStringDateRangeLessThanOrEqual(yylex, $1, $4, false)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -199,7 +199,7 @@ tSTRING tCOLON tLESS tPHRASE {
 }
 |
 tSTRING tCOLON tLESS tEQUAL tPHRASE {
-    yylex.(*lexerWrapper).LogDebugGrammar("FIELD - LESS THAN OR EQUAL DATE %s", $5)
+    yylex.(*lexerWrapper).logDebugGrammarf("FIELD - LESS THAN OR EQUAL DATE %s", $5)
     q, err := queryStringDateRangeLessThanOrEqual(yylex, $1, $5, true)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
@@ -214,7 +214,7 @@ searchSuffix:
 |
 tBOOST {
     $$ = nil
-    yylex.(*lexerWrapper).LogDebugGrammar("BOOST %s", $1)
+    yylex.(*lexerWrapper).logDebugGrammarf("BOOST %s", $1)
     boost, err := queryStringParseBoost($1)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())

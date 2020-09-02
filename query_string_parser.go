@@ -111,7 +111,7 @@ type lexerWrapper struct {
 func newLexerWrapper(lex yyLexer, options QueryStringOptions) *lexerWrapper {
 	return &lexerWrapper{
 		lex:         lex,
-		query:       bluge.NewBooleanQuery().SetQueryStringMode(true),
+		query:       bluge.NewBooleanQuery(),
 		debugParser: options.debugParser,
 		dateFormat:  options.dateFormat,
 		logger:      options.logger,
@@ -126,7 +126,7 @@ func (l *lexerWrapper) Error(s string) {
 	l.errs = append(l.errs, s)
 }
 
-func (l *lexerWrapper) LogDebugGrammarf(format string, v ...interface{}) {
+func (l *lexerWrapper) logDebugGrammarf(format string, v ...interface{}) {
 	if l.debugParser {
 		l.logger.Printf(format, v...)
 	}
@@ -157,14 +157,14 @@ func queryStringStringTokenFuzzy(field, str, fuzziness string) (*bluge.MatchQuer
 	return bluge.NewMatchQuery(str).SetFuzziness(int(fuzzy)).SetField(field), nil
 }
 
-func queryStringNumberToken(field, str string) (*bluge.DisjunctionQuery, error) {
+func queryStringNumberToken(field, str string) (bluge.Query, error) {
 	q1 := bluge.NewMatchQuery(str).SetField(field)
 	val, err := strconv.ParseFloat(str, 64)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing number: %v", err)
 	}
 	q2 := bluge.NewNumericRangeInclusiveQuery(val, val, true, true).SetField(field)
-	return bluge.NewDisjunctionQuery([]bluge.Query{q1, q2}...).SetQueryStringMode(true), nil
+	return bluge.NewBooleanQuery().AddShould([]bluge.Query{q1, q2}...), nil
 }
 
 func queryStringPhraseToken(field, str string) *bluge.MatchPhraseQuery {
@@ -225,7 +225,7 @@ func queryStringSetBoost(q bluge.Query, b float64) (bluge.Query, error) {
 		return v.SetBoost(b), nil
 	case *bluge.WildcardQuery:
 		return v.SetBoost(b), nil
-	case *bluge.DisjunctionQuery:
+	case *bluge.BooleanQuery:
 		return v.SetBoost(b), nil
 	case *bluge.NumericRangeQuery:
 		return v.SetBoost(b), nil
