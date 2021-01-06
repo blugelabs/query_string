@@ -15,6 +15,7 @@
 package querystr
 
 import (
+	"io/ioutil"
 	"reflect"
 	"strings"
 	"testing"
@@ -417,6 +418,20 @@ func TestQuerySyntaxParserInvalid(t *testing.T) {
 		if err == nil {
 			t.Errorf("expected error, got nil for `%s`", test.input)
 		}
+	}
+}
+
+func TestParserDebugWithNoLogger(t *testing.T) {
+	// don't print logs in tests
+	defaultLogger.SetOutput(ioutil.Discard)
+
+	r, err := ParseQueryString("text", DefaultOptions().WithDebugParser(true))
+	if err != nil {
+		t.Errorf("unexpected error: %+v", err)
+	}
+	expectedQuery := bluge.NewBooleanQuery().AddShould(bluge.NewMatchQuery("text"))
+	if !reflect.DeepEqual(r, expectedQuery) {
+		t.Error("unexpected query returned")
 	}
 }
 

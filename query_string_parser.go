@@ -29,6 +29,7 @@ package querystr
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -43,27 +44,35 @@ type QueryStringOptions struct {
 	logger      *log.Logger
 }
 
+var defaultLogger = log.New(os.Stderr, "", log.LstdFlags)
+
+// DefaultOptions creates default options with debug features disabled
 func DefaultOptions() QueryStringOptions {
 	return QueryStringOptions{
 		dateFormat: time.RFC3339,
+		logger:     defaultLogger,
 	}
 }
 
+// WithDebugParser will make parser print debug messages to logger in options or stderr by default
 func (o QueryStringOptions) WithDebugParser(debug bool) QueryStringOptions {
 	o.debugParser = debug
 	return o
 }
 
+// WithDebugLexer will make lexer print debug messages to logger in options or stderr by default
 func (o QueryStringOptions) WithDebugLexer(debug bool) QueryStringOptions {
 	o.debugLexer = debug
 	return o
 }
 
+// WithDateFormat changes the default date format (RFC 3339) to the specified one
 func (o QueryStringOptions) WithDateFormat(dateFormat string) QueryStringOptions {
 	o.dateFormat = dateFormat
 	return o
 }
 
+// WithLogger changes the log destination to the specified one, default is os.Stderr
 func (o QueryStringOptions) WithLogger(logger *log.Logger) QueryStringOptions {
 	o.logger = logger
 	return o
