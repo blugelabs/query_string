@@ -81,12 +81,12 @@ tMINUS {
 searchBase:
 tSTRING {
     yylex.(*lexerWrapper).logDebugGrammarf("STRING - %s", $1)
-	$$ = queryStringStringToken("", $1)
+	$$ = queryStringStringToken(yylex, "", $1)
 }
 |
 tSTRING tTILDE {
     yylex.(*lexerWrapper).logDebugGrammarf("FUZZY STRING - %s %s", $1, $2)
-	q, err := queryStringStringTokenFuzzy("", $1, $2)
+	q, err := queryStringStringTokenFuzzy(yylex, "", $1, $2)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
     }
@@ -95,7 +95,7 @@ tSTRING tTILDE {
 |
 tSTRING tCOLON tSTRING tTILDE {
     yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s FUZZY STRING - %s %s", $1, $3, $4)
-    q, err := queryStringStringTokenFuzzy($1, $3, $4)
+    q, err := queryStringStringTokenFuzzy(yylex, $1, $3, $4)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
     }
@@ -104,7 +104,7 @@ tSTRING tCOLON tSTRING tTILDE {
 |
 tNUMBER {
 	yylex.(*lexerWrapper).logDebugGrammarf("STRING - %s", $1)
-	q, err := queryStringNumberToken("", $1)
+	q, err := queryStringNumberToken(yylex, "", $1)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
     }
@@ -118,12 +118,12 @@ tPHRASE {
 |
 tSTRING tCOLON tSTRING {
 	yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s STRING - %s", $1, $3)
-	$$ = queryStringStringToken($1, $3)
+	$$ = queryStringStringToken(yylex, $1, $3)
 }
 |
 tSTRING tCOLON posOrNegNumber {
 	yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s STRING - %s", $1, $3)
-	q, err := queryStringNumberToken($1, $3)
+	q, err := queryStringNumberToken(yylex, $1, $3)
     if err != nil {
       yylex.(*lexerWrapper).lex.Error(err.Error())
     }
