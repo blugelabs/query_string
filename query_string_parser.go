@@ -40,6 +40,7 @@ import (
 type QueryStringOptions struct {
 	debugParser     bool
 	debugLexer      bool
+	debugAnalyzer   bool
 	dateFormat      string
 	logger          *log.Logger
 	analyzers       map[string]*analysis.Analyzer
@@ -60,6 +61,11 @@ func (o QueryStringOptions) WithDebugParser(debug bool) QueryStringOptions {
 
 func (o QueryStringOptions) WithDebugLexer(debug bool) QueryStringOptions {
 	o.debugLexer = debug
+	return o
+}
+
+func (o QueryStringOptions) WithDebugAnalyzer(debug bool) QueryStringOptions {
+	o.debugAnalyzer = debug
 	return o
 }
 
@@ -144,6 +150,12 @@ func (l *lexerWrapper) Error(s string) {
 
 func (l *lexerWrapper) logDebugGrammarf(format string, v ...interface{}) {
 	if l.debugParser {
+		l.logger.Printf(format, v...)
+	}
+}
+
+func (l *lexerWrapper) logDebugAnalyzerf(format string, v ...interface{}) {
+	if l.opt.debugAnalyzer {
 		l.logger.Printf(format, v...)
 	}
 }
@@ -270,9 +282,12 @@ func queryStringSetBoost(q bluge.Query, b float64) (bluge.Query, error) {
 func analyzerForField(yylex yyLexer, field string) *analysis.Analyzer {
 	lw := yylex.(*lexerWrapper)
 	if analyzer, ok := lw.opt.analyzers[field]; ok {
+		lw.logDebugAnalyzerf("specific analyzer used for field '%s'", field)
 		return analyzer
 	} else if lw.opt.defaultAnalyzer != nil {
+		lw.logDebugAnalyzerf("default analyzer used for field '%s'", field)
 		return lw.opt.defaultAnalyzer
 	}
+	lw.logDebugAnalyzerf("no analyzer set for field '%s'", field)
 	return nil
 }
