@@ -47,6 +47,7 @@ var yyToknames = [...]string{
 	"tEQUAL",
 	"tTILDE",
 }
+
 var yyStatenames = [...]string{}
 
 const yyEofCode = 1
@@ -68,59 +69,59 @@ const yyPrivate = 57344
 const yyLast = 42
 
 var yyAct = [...]int{
-
 	17, 16, 18, 23, 22, 30, 3, 21, 19, 20,
 	29, 26, 22, 22, 1, 21, 21, 15, 28, 25,
 	24, 27, 34, 14, 22, 13, 31, 21, 32, 33,
 	22, 9, 11, 21, 5, 6, 2, 10, 4, 12,
 	7, 8,
 }
-var yyPact = [...]int{
 
+var yyPact = [...]int{
 	28, -1000, -1000, 28, 27, -1000, -1000, -1000, 16, 9,
 	-1000, -1000, -1000, -1000, -1000, -3, -11, -1000, -1000, 6,
 	5, -1000, -5, -1000, -1000, 23, -1000, -1000, 17, -1000,
 	-1000, -1000, -1000, -1000, -1000,
 }
-var yyPgo = [...]int{
 
+var yyPgo = [...]int{
 	0, 0, 41, 39, 38, 14, 36, 6,
 }
-var yyR1 = [...]int{
 
+var yyR1 = [...]int{
 	0, 5, 6, 6, 7, 4, 4, 4, 2, 2,
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	2, 2, 2, 2, 3, 3, 1, 1,
 }
-var yyR2 = [...]int{
 
+var yyR2 = [...]int{
 	0, 1, 2, 1, 3, 0, 1, 1, 1, 2,
 	4, 1, 1, 3, 3, 3, 4, 5, 4, 5,
 	4, 5, 4, 5, 0, 1, 1, 2,
 }
-var yyChk = [...]int{
 
+var yyChk = [...]int{
 	-1000, -5, -6, -7, -4, 6, 7, -6, -2, 4,
 	10, 5, -3, 9, 14, 8, 4, -1, 5, 11,
 	12, 10, 7, 14, -1, 13, 5, -1, 13, 5,
 	10, -1, 5, -1, 5,
 }
-var yyDef = [...]int{
 
+var yyDef = [...]int{
 	5, -2, 1, -2, 0, 6, 7, 2, 24, 8,
 	11, 12, 4, 25, 9, 0, 13, 14, 15, 0,
 	0, 26, 0, 10, 16, 0, 20, 18, 0, 22,
 	27, 17, 21, 19, 23,
 }
-var yyTok1 = [...]int{
 
+var yyTok1 = [...]int{
 	1,
 }
-var yyTok2 = [...]int{
 
+var yyTok2 = [...]int{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14,
 }
+
 var yyTok3 = [...]int{
 	0,
 }
@@ -526,14 +527,14 @@ yydefault:
 //line query_string.y:82
 		{
 			yylex.(*lexerWrapper).logDebugGrammarf("STRING - %s", yyDollar[1].s)
-			yyVAL.q = queryStringStringToken("", yyDollar[1].s)
+			yyVAL.q = queryStringStringToken(yylex, "", yyDollar[1].s)
 		}
 	case 9:
 		yyDollar = yyS[yypt-2 : yypt+1]
 //line query_string.y:87
 		{
 			yylex.(*lexerWrapper).logDebugGrammarf("FUZZY STRING - %s %s", yyDollar[1].s, yyDollar[2].s)
-			q, err := queryStringStringTokenFuzzy("", yyDollar[1].s, yyDollar[2].s)
+			q, err := queryStringStringTokenFuzzy(yylex, "", yyDollar[1].s, yyDollar[2].s)
 			if err != nil {
 				yylex.(*lexerWrapper).lex.Error(err.Error())
 			}
@@ -544,7 +545,7 @@ yydefault:
 //line query_string.y:96
 		{
 			yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s FUZZY STRING - %s %s", yyDollar[1].s, yyDollar[3].s, yyDollar[4].s)
-			q, err := queryStringStringTokenFuzzy(yyDollar[1].s, yyDollar[3].s, yyDollar[4].s)
+			q, err := queryStringStringTokenFuzzy(yylex, yyDollar[1].s, yyDollar[3].s, yyDollar[4].s)
 			if err != nil {
 				yylex.(*lexerWrapper).lex.Error(err.Error())
 			}
@@ -555,7 +556,7 @@ yydefault:
 //line query_string.y:105
 		{
 			yylex.(*lexerWrapper).logDebugGrammarf("STRING - %s", yyDollar[1].s)
-			q, err := queryStringNumberToken("", yyDollar[1].s)
+			q, err := queryStringNumberToken(yylex, "", yyDollar[1].s)
 			if err != nil {
 				yylex.(*lexerWrapper).lex.Error(err.Error())
 			}
@@ -573,14 +574,14 @@ yydefault:
 //line query_string.y:119
 		{
 			yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s STRING - %s", yyDollar[1].s, yyDollar[3].s)
-			yyVAL.q = queryStringStringToken(yyDollar[1].s, yyDollar[3].s)
+			yyVAL.q = queryStringStringToken(yylex, yyDollar[1].s, yyDollar[3].s)
 		}
 	case 14:
 		yyDollar = yyS[yypt-3 : yypt+1]
 //line query_string.y:124
 		{
 			yylex.(*lexerWrapper).logDebugGrammarf("FIELD - %s STRING - %s", yyDollar[1].s, yyDollar[3].s)
-			q, err := queryStringNumberToken(yyDollar[1].s, yyDollar[3].s)
+			q, err := queryStringNumberToken(yylex, yyDollar[1].s, yyDollar[3].s)
 			if err != nil {
 				yylex.(*lexerWrapper).lex.Error(err.Error())
 			}

@@ -34,18 +34,23 @@ import (
 	"time"
 
 	"github.com/blugelabs/bluge"
+	"github.com/blugelabs/bluge/analysis"
 )
 
 type QueryStringOptions struct {
-	debugParser bool
-	debugLexer  bool
-	dateFormat  string
-	logger      *log.Logger
+	debugParser     bool
+	debugLexer      bool
+	debugAnalyzer   bool
+	dateFormat      string
+	logger          *log.Logger
+	analyzers       map[string]*analysis.Analyzer
+	defaultAnalyzer *analysis.Analyzer
 }
 
 func DefaultOptions() QueryStringOptions {
 	return QueryStringOptions{
 		dateFormat: time.RFC3339,
+		analyzers:  make(map[string]*analysis.Analyzer),
 	}
 }
 
@@ -59,6 +64,11 @@ func (o QueryStringOptions) WithDebugLexer(debug bool) QueryStringOptions {
 	return o
 }
 
+func (o QueryStringOptions) WithDebugAnalyzer(debug bool) QueryStringOptions {
+	o.debugAnalyzer = debug
+	return o
+}
+
 func (o QueryStringOptions) WithDateFormat(dateFormat string) QueryStringOptions {
 	o.dateFormat = dateFormat
 	return o
@@ -66,6 +76,16 @@ func (o QueryStringOptions) WithDateFormat(dateFormat string) QueryStringOptions
 
 func (o QueryStringOptions) WithLogger(logger *log.Logger) QueryStringOptions {
 	o.logger = logger
+	return o
+}
+
+func (o QueryStringOptions) WithAnalyzerForField(field string, analyzer *analysis.Analyzer) QueryStringOptions {
+	o.analyzers[field] = analyzer
+	return o
+}
+
+func (o QueryStringOptions) WithDefaultAnalyzer(analyzer *analysis.Analyzer) QueryStringOptions {
+	o.defaultAnalyzer = analyzer
 	return o
 }
 
@@ -106,6 +126,7 @@ type lexerWrapper struct {
 	debugParser bool
 	dateFormat  string
 	logger      *log.Logger
+	opt         *QueryStringOptions
 }
 
 func newLexerWrapper(lex yyLexer, options QueryStringOptions) *lexerWrapper {
@@ -115,6 +136,7 @@ func newLexerWrapper(lex yyLexer, options QueryStringOptions) *lexerWrapper {
 		debugParser: options.debugParser,
 		dateFormat:  options.dateFormat,
 		logger:      options.logger,
+		opt:         &options,
 	}
 }
 
@@ -132,6 +154,12 @@ func (l *lexerWrapper) logDebugGrammarf(format string, v ...interface{}) {
 	}
 }
 
+func (l *lexerWrapper) logDebugAnalyzerf(format string, v ...interface{}) {
+	if l.opt.debugAnalyzer {
+		l.logger.Printf(format, v...)
+	}
+}
+
 func queryTimeFromString(yylex yyLexer, t string) (time.Time, error) {
 	rv, err := time.Parse(yylex.(*lexerWrapper).dateFormat, t)
 	if err != nil {
@@ -140,28 +168,42 @@ func queryTimeFromString(yylex yyLexer, t string) (time.Time, error) {
 	return rv, nil
 }
 
-func queryStringStringToken(field, str string) bluge.Query {
+func queryStringStringToken(yylex yyLexer, field, str string) bluge.Query {
 	if strings.HasPrefix(str, "/") && strings.HasSuffix(str, "/") {
 		return bluge.NewRegexpQuery(str[1 : len(str)-1]).SetField(field)
 	} else if strings.ContainsAny(str, "*?") {
 		return bluge.NewWildcardQuery(str).SetField(field)
 	}
-	return bluge.NewMatchQuery(str).SetField(field)
+	rv := bluge.NewMatchQuery(str).SetField(field)
+	analyzer := analyzerForField(yylex, field)
+	if analyzer != nil {
+		rv.SetAnalyzer(analyzer)
+	}
+	return rv
 }
 
-func queryStringStringTokenFuzzy(field, str, fuzziness string) (*bluge.MatchQuery, error) {
+func queryStringStringTokenFuzzy(yylex yyLexer, field, str, fuzziness string) (*bluge.MatchQuery, error) {
 	fuzzy, err := strconv.ParseFloat(fuzziness, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid fuzziness value: %v", err)
 	}
-	return bluge.NewMatchQuery(str).SetFuzziness(int(fuzzy)).SetField(field), nil
+	rv := bluge.NewMatchQuery(str).SetFuzziness(int(fuzzy)).SetField(field)
+	analyzer := analyzerForField(yylex, field)
+	if analyzer != nil {
+		rv.SetAnalyzer(analyzer)
+	}
+	return rv, nil
 }
 
-func queryStringNumberToken(field, str string) (bluge.Query, error) {
+func queryStringNumberToken(yylex yyLexer, field, str string) (bluge.Query, error) {
 	q1 := bluge.NewMatchQuery(str).SetField(field)
 	val, err := strconv.ParseFloat(str, 64)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing number: %v", err)
+	}
+	analyzer := analyzerForField(yylex, field)
+	if analyzer != nil {
+		q1.SetAnalyzer(analyzer)
 	}
 	q2 := bluge.NewNumericRangeInclusiveQuery(val, val, true, true).SetField(field)
 	return bluge.NewBooleanQuery().AddShould([]bluge.Query{q1, q2}...), nil
@@ -235,4 +277,17 @@ func queryStringSetBoost(q bluge.Query, b float64) (bluge.Query, error) {
 		return v.SetBoost(b), nil
 	}
 	return nil, fmt.Errorf("cannot boost %T", q)
+}
+
+func analyzerForField(yylex yyLexer, field string) *analysis.Analyzer {
+	lw := yylex.(*lexerWrapper)
+	if analyzer, ok := lw.opt.analyzers[field]; ok {
+		lw.logDebugAnalyzerf("specific analyzer used for field '%s'", field)
+		return analyzer
+	} else if lw.opt.defaultAnalyzer != nil {
+		lw.logDebugAnalyzerf("default analyzer used for field '%s'", field)
+		return lw.opt.defaultAnalyzer
+	}
+	lw.logDebugAnalyzerf("no analyzer set for field '%s'", field)
+	return nil
 }
