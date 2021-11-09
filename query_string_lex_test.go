@@ -1079,6 +1079,125 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+		{
+			input: `age:65^10`,
+			tokens: []token{
+				{
+					typ: tSTRING,
+					lval: yySymType{
+						s: "age",
+					},
+				},
+				{
+					typ: tCOLON,
+				},
+				{
+					typ: tNUMBER,
+					lval: yySymType{
+						s: "65",
+					},
+				},
+				{
+					typ: tBOOST,
+					lval: yySymType{
+						s: "10",
+					},
+				},
+			},
+		},
+		{
+			input: `age:65^10 age:18^5`,
+			tokens: []token{
+				{
+					typ: tSTRING,
+					lval: yySymType{
+						s: "age",
+					},
+				},
+				{
+					typ: tCOLON,
+				},
+				{
+					typ: tNUMBER,
+					lval: yySymType{
+						s: "65",
+					},
+				},
+				{
+					typ: tBOOST,
+					lval: yySymType{
+						s: "10",
+					},
+				},
+				{
+					typ: tSTRING,
+					lval: yySymType{
+						s: "age",
+					},
+				},
+				{
+					typ: tCOLON,
+				},
+				{
+					typ: tNUMBER,
+					lval: yySymType{
+						s: "18",
+					},
+				},
+				{
+					typ: tBOOST,
+					lval: yySymType{
+						s: "5",
+					},
+				},
+			},
+		},
+		{
+			input: `age:65~2`,
+			tokens: []token{
+				{
+					typ: tSTRING,
+					lval: yySymType{
+						s: "age",
+					},
+				},
+				{
+					typ: tCOLON,
+				},
+				{
+					typ: tNUMBER,
+					lval: yySymType{
+						s: "65",
+					},
+				},
+				{
+					typ: tTILDE,
+					lval: yySymType{
+						s: "2",
+					},
+				},
+			},
+		},
+		{
+			input: `65:cat`,
+			tokens: []token{
+				{
+					typ: tNUMBER,
+					lval: yySymType{
+						s: "65",
+					},
+				},
+				{
+					typ: tCOLON,
+				},
+				{
+					typ: tSTRING,
+					lval: yySymType{
+						s: "cat",
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {

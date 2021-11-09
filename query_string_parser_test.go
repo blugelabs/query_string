@@ -15,12 +15,11 @@
 package querystr
 
 import (
+	"github.com/blugelabs/bluge"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/blugelabs/bluge"
 )
 
 func TestQuerySyntaxParserValid(t *testing.T) {
@@ -369,6 +368,15 @@ func TestQuerySyntaxParserValid(t *testing.T) {
 			input: `3.0\a`,
 			result: bluge.NewBooleanQuery().
 				AddShould(bluge.NewMatchQuery(`3.0\a`)),
+		},
+		// exact match number with boost
+		{
+			input: `age:65^10`,
+			result: bluge.NewBooleanQuery().
+				AddShould(bluge.NewBooleanQuery().
+					AddShould(bluge.NewMatchQuery("65").SetField("age")).
+					AddShould(bluge.NewNumericRangeInclusiveQuery(65, 65, true, true).SetField("age")).
+					SetBoost(10)),
 		},
 	}
 
